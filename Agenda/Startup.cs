@@ -1,6 +1,11 @@
+using Agenda.Areas.Contatos.Models;
+using Agenda.Areas.Contatos.Models.Repository;
+using Agenda.Areas.Contatos.Services;
+using Agenda.Shared.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,6 +29,10 @@ namespace Agenda
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
+            services.AddDbContextPool<DbContext, AgendaDbContext>(opt => opt.UseSqlServer(Configuration.GetConnectionString("AgendaDB")));
+            services.AddScoped<IContatoService, ContatoService>();
+            services.AddScoped<IGenericRepository<Contato>, ContatoRepository>();
+            //services.AddScoped<IContatoRepository, ContatoRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
