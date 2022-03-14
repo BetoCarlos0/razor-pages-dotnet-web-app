@@ -3,9 +3,11 @@ using Agenda.Areas.Contatos.Models.Repository;
 using Agenda.Shared.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -53,6 +55,14 @@ namespace Agenda.Areas.Contatos.Services
             return await _genericRepository.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
 
+        public async Task<bool> AlternarFavorito(Guid id, CancellationToken cancellationToken)
+        {
+            var contato = await _genericRepository.GetByKeysAsync(cancellationToken, id).ConfigureAwait(false);
+            contato.Favorito = !contato.Favorito;
+            _genericRepository.Update(contato);
+            return await _genericRepository.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+
         public async Task<bool> ApagarContato(Guid id, CancellationToken cancellationToken)
         {
             var contato = await _genericRepository.GetByKeysAsync(cancellationToken, id).ConfigureAwait(false);
@@ -60,14 +70,25 @@ namespace Agenda.Areas.Contatos.Services
             return await _genericRepository.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
 
+        public async Task<int> ContarContatos(CancellationToken cancellationToken)
+        {
+            return await _genericRepository.GetAll().CountAsync(cancellationToken).ConfigureAwait(false);
+        }
+
         public async Task<Contato> ObterPorId(Guid id, CancellationToken cancellationToken)
         {
             return await _genericRepository.GetByKeysAsync(cancellationToken, id).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<Contato>> ObterTodos(CancellationToken cancellationToken)
+        public async Task<IEnumerable<Contato>> ObterTodos(int paginaAtual, int qntPagina, CancellationToken cancellationToken)
         {
-            return await _genericRepository.GetAllAsync(cancellationToken: cancellationToken, noTracking: true);
+            return await _genericRepository.GetAllAsync(
+                orderBy: o => o.OrderByDescending(x => x.Favorito)
+                                .ThenBy(x => x.Nome),
+                skip: (paginaAtual-1) * qntPagina,
+                take: qntPagina,
+                noTracking: true,
+                cancellationToken: cancellationToken);
         }
         private async Task UploadFoto(Contato contato, CancellationToken cancellationToken)
         {
