@@ -14,6 +14,7 @@ namespace Agenda.Areas.Contatos.Services
     public class ContatoService : IContatoService
     {
         private readonly IGenericRepository<Contato> _genericRepository;
+        private readonly IContatoRepository _contatoRepository;
         private readonly IWebHostEnvironment _env;
 
         public ContatoService(
@@ -22,6 +23,7 @@ namespace Agenda.Areas.Contatos.Services
             IWebHostEnvironment env)
         {
             _genericRepository = genericRepository;
+            _contatoRepository = contatoRepository;
             _env = env;
         }
         public async Task<bool> Adicionar(Contato contato, CancellationToken cancellationToken)
@@ -45,7 +47,7 @@ namespace Agenda.Areas.Contatos.Services
             }
             else
             {
-                _genericRepository.AtualizarContatoSemFoto(contato);
+                _contatoRepository.AtualizarContatoSemFoto(contato);
             }
             contato.DataModificacao = DateTime.Now;
             return await _genericRepository.CommitAsync(cancellationToken).ConfigureAwait(false);
